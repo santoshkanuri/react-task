@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
-import {user as users} from '../db';
-export default class Dashboard extends Component {
+import { connect } from 'react-redux';
+import {getUsers} from '../actions' ;
+import {Redirect} from 'react-router-dom';
+class Dashboard extends Component {
      isLogin = localStorage.getItem('auth_token') || null;
     constructor(props){
         super(props)
@@ -8,8 +10,7 @@ export default class Dashboard extends Component {
         }
     }
     componentDidMount(){
-        if(!this.isLogin)
-            this.props.history.push('/login');
+    this.props.dispatch(getUsers());
     }
     _logout=(e)=>{
         e.preventDefault();
@@ -17,15 +18,18 @@ export default class Dashboard extends Component {
         this.props.history.push('/login')
     }
     render() {
+        const {users} = this.props;
+       
         return (
             <div>
+                 {!this.isLogin && <Redirect to="/login" />}
                 <div className="bg-dark text-right" style={{height:'50px',color:'white'}}>
                     <button type="button" className="btn btn-warning"onClick ={e=>this._logout(e)}>Logout</button>
                 </div>
                 {users&&users.length>0 &&
                 <table  className="table table-striped">
                     <thead>
-                    <tr>{Object.keys(users[0]).map(key=><th>{key}</th>)}
+                    <tr key={users}>{Object.keys(users[0]).map(key=><th>{key}</th>)}
                     </tr>
                     </thead>
                     <tbody>
@@ -45,3 +49,7 @@ export default class Dashboard extends Component {
         )
     }
 }
+const mapStateToProps = (state) => ({
+    users: state.userReducer.users
+});
+export default connect(mapStateToProps, (dispatch) => ({ dispatch }))(Dashboard);
